@@ -1,1 +1,1 @@
-User-agent: * Disallow: Sitemap: https://haoxuany.github.io/sitemap.xml
+User-agent: * Disallow: Sitemap: https://www.haoxuany.com/sitemap.xml
