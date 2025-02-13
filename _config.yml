@@ -145,9 +145,9 @@ collections:
       layout: post
     output: true
     permalink: /:collection/:title/
-  projects:
-    output: true
-    permalink: /:collection/:title/
+  # projects:
+  #   output: true
+  #   permalink: /:collection/:title/
 
 # -----------------------------------------------------------------------------
 # Jekyll settings
@@ -169,6 +169,23 @@ kramdown:
 # Includes & excludes
 include: ["_pages", "_scripts"]
 exclude:
+  - _pages/about_einstein.md
+  # projects
+  - _projects/
+  - _pages/projects.md
+  # publications
+  - _bibliography/
+  - _pages/publications.md
+  # repositories
+  - _pages/repositories.md
+  # cv
+  - _pages/cv.md
+  - _data/cv.yml
+  # teaching
+  - _pages/teaching.md
+  # people
+  - _pages/profiles.md
+
   - bin/
   - CONTRIBUTING.md
   - CUSTOMIZE.md
@@ -261,8 +278,8 @@ display_categories: ["external-services"] # these categories will be displayed o
 # -----------------------------------------------------------------------------
 
 scholar:
-  last_name: [Einstein]
-  first_name: [Albert, A.]
+  last_name: [Yue]
+  first_name: [Haoxuan]
 
   style: apa
   locale: en
