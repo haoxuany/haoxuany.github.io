@@ -2,7 +2,7 @@
 # Site settings
 # -----------------------------------------------------------------------------
 
-title: Aaron's Page # the website title (if blank, full name will be used instead)
+title: Aaron Yue # the website title (if blank, full name will be used instead)
 first_name: Haoxuan
 middle_name: (Aaron)
 last_name: Yue
@@ -83,7 +83,7 @@ bing_site_verification: # out your bing-site-verification ID (Bing Webmaster)
 # Blog
 # -----------------------------------------------------------------------------
 
-blog_name: Rants and Ramblings By Some Old Guy # blog_name will be displayed in your blog page
+blog_name: Ramblings By Some Guy # blog_name will be displayed in your blog page
 blog_description: random rants, mostly about getting old, and very occasionally about actually interesting stuff
 permalink: /blog/:title/
 lsi: false # produce an index for related posts
@@ -270,8 +270,8 @@ jekyll-archives:
     tag: "/blog/tag/:name/"
     category: "/blog/category/:name/"
 
-display_tags: ["formatting", "images", "links", "math", "code", "blockquotes"] # these tags will be displayed on the front page of your blog
-display_categories: ["external-services"] # these categories will be displayed on the front page of your blog
+display_tags: [] # these tags will be displayed on the front page of your blog
+display_categories: [] # these categories will be displayed on the front page of your blog
 
 # -----------------------------------------------------------------------------
 # Jekyll Scholar
