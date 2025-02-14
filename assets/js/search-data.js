@@ -16,18 +16,7 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-first-post",
-      
-        title: "First Post!",
-      
-      description: "testing first blog post",
-      section: "Posts",
-      handler: () => {
-        
-          window.location.href = "/blog/first-post/";
-        
-      },
-    },{id: "post-a-hands-on-guide-to-implementing-debruijn-indicies-1",
+        },{id: "post-a-hands-on-guide-to-implementing-debruijn-indicies-1",
       
         title: "A Hands-on Guide to Implementing DeBruijn Indicies (1)",
       
@@ -36,6 +25,17 @@ ninja.data = [{
       handler: () => {
         
           window.location.href = "/blog/debruijn-1/";
+        
+      },
+    },{id: "post-first-post",
+      
+        title: "First Post!",
+      
+      description: "testing first blog post",
+      section: "Posts",
+      handler: () => {
+        
+          window.location.href = "/blog/first-post/";
         
       },
     },{id: "news-started-a-blog-smile",
