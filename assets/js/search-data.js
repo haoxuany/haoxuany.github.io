@@ -27,6 +27,17 @@ ninja.data = [{
           window.location.href = "/blog/first-post/";
         
       },
+    },{id: "post-a-hands-on-guide-to-implementing-debruijn-indicies-1",
+      
+        title: "A Hands-on Guide to Implementing DeBruijn Indicies (1)",
+      
+      description: "where we talk about debruijn indicies in the simple first order case",
+      section: "Posts",
+      handler: () => {
+        
+          window.location.href = "/blog/debruijn-1/";
+        
+      },
     },{id: "news-started-a-blog-smile",
           title: 'Started a blog. :smile:',
           description: "",
