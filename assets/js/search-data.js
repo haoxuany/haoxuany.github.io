@@ -16,7 +16,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-a-hands-on-guide-to-implementing-debruijn-indicies-1",
+        },{id: "post-how-to-dislike-constructive-mathematics-correctly",
+      
+        title: "How to Dislike Constructive Mathematics Correctly",
+      
+      description: "where I attempt to start an Internet flame war",
+      section: "Posts",
+      handler: () => {
+        
+          window.location.href = "/blog/dislike-constructive-mathematics/";
+        
+      },
+    },{id: "post-a-hands-on-guide-to-implementing-debruijn-indicies-1",
       
         title: "A Hands-on Guide to Implementing DeBruijn Indicies (1)",
       
