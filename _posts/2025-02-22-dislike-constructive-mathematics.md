@@ -7,6 +7,7 @@ tags: logic, math, philosophy
 categories:
 tabs: true
 related_publications: true
+giscus_comments: true
 ---
 
 I am going to quickly go over, at a very elementary level, what constructive mathematics is all about. Unlike all the other stuff I plan to blog about, this material is decidedly *not* technical, and I plan to keep the discussion strictly at a **high school** level. There will be no technical discussion of proofs in type theory or logic, and all proofs are phrased in English in a way that can hopefully be appreciated by everyone, using only basic arithmetic and logic.
