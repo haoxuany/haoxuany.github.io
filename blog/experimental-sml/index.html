@@ -1,0 +1,161 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> Thoughts on Standard ML | Aaron Yue </title> <meta name="author" content="Haoxuan (Aaron) Yue"> <meta name="description" content="here we go again"> <meta name="keywords" content="type-theory, japanese"> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="/assets/css/academicons.min.css?f0b7046b84e425c55f3463ac249818f5"> <link defer rel="stylesheet" href="/assets/css/scholar-icons.css?62b2ac103a88034e6882a5be5f3e2772"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%CE%BB&lt;/text&gt;&lt;/svg&gt;"> <link rel="stylesheet" href="/assets/css/main.css?d41d8cd98f00b204e9800998ecf8427e"> <link rel="canonical" href="https://www.haoxuany.com/blog/experimental-sml/"> <script src="/assets/js/theme.js?9a0c749ec5240d9cda97bc72359a72c0"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
+    initTheme();
+  </script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top" role="navigation"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"> Aaron Yue </a> <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse text-right" id="navbarNav"> <ul class="navbar-nav ml-auto flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about </a> </li> <li class="nav-item active"> <a class="nav-link" href="/blog/">blog </a> </li> <li class="nav-item"> <button id="search-toggle" title="Search" onclick="openSearchModal()"> <span class="nav-link">ctrl k <i class="ti ti-search"></i></span> </button> </li> <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="ti ti-sun-moon" id="light-toggle-system"></i> <i class="ti ti-moon-filled" id="light-toggle-dark"></i> <i class="ti ti-sun-filled" id="light-toggle-light"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5" role="main"> <div class="post"> <header class="post-header"> <h1 class="post-title">Thoughts on Standard ML</h1> <p class="post-meta"> Created in January 30, 2026 </p> <p class="post-tags"> <a href="/blog/2026"> <i class="fa-solid fa-calendar fa-sm"></i> 2026 </a>   ·   <a href="/blog/tag/programming"> <i class="fa-solid fa-hashtag fa-sm"></i> programming</a> </p> </header> <article class="post-content"> <div id="markdown-content"> <p>So as I am very quickly getting old and washed, people who are close to me might know that I’m in the process of writing my own SML compiler. Much like most one man projects that need to juggle an irrelevant day job and this, this is going extremely slowly. But this post here is to mostly dump my thoughts in case I forget about them one day (which, as you are getting old and washed, happens).</p> <p>The elephant in the room is that there are likely more than 10 different compiler implementation for SML out there, and they are all (annoyingly) different and specializes in most things that you can think of, so why write one more when there are already pretty good implementations out there? (My personal favorite implementations are the New Jersey compiler, SML#, and Rossberg’s HamLet).</p> <p>A few years ago I was working on a similar ML compiler, but decided to scrape it, because I regretted certain implementation strategies that I did. The internal type theory is quite similar to the one in TILT, but for a number of reasons on top of my head it was unsatisfactory for seperate compilation in too many ways. But more importantly, I wanted to fix certain things in the <em>language</em>, from scratch.</p> <p>There are three main goals in my mind:</p> <ol> <li>To fix some of the language to be more consistent with Harper-Stone.</li> <li>To implement dictionary construction for modules.</li> <li>To have a “good enough” implementation of seperate compilation, independent of the module system (aka. unlike OCaml). For example, something similar to (TODO: cite Krary).</li> </ol> <p>Hence this is a rant about some stuff I don’t like in Standard ML, and on top of my mind, what is the right way to fix it. Of course, I really like the language (as any minimally competent programmer does); I wouldn’t bother to talk about it otherwise.</p> <h1 id="what-is-standard-ml">What is Standard ML?</h1> <p>When I think of Standard ML, there are two well known papers that stand out on top of my head:</p> <ul> <li>Harper-Stone Elaboration <a class="citation" href="#HarperStone2000">(Harper &amp; Stone, 2000)</a> </li> <li>The Mechanized Metatheory of Standard ML <a class="citation" href="#LeeCraryHarper2007">(Lee et al., 2007)</a>. The paper doesn’t have complete details because the proof is quite large, so you’d need to look at the Twelf proof.</li> </ul> <p>These papers are also based on the PhD thesis of Dreyer on recursive modules. <a class="citation" href="#Dreyer2005">(Dreyer &amp; univ pittsburgh pa school of computer science, 2005)</a></p> <p>If there is one thing I <em>don’t</em> care about, it is the original definition <a class="citation" href="#Defn2nd">(Milner et al., 2019)</a>. The definition is noble in its goals at the time, but pretty problematic in retrospect. It’s not just the tiny things, but overall in methodology on how the language is defined. The wonderful thing about Harper-Stone is that it translates the language into proper objects in type theory, so that it can be actually studied, and type safety (and surprisingly, parametricity properties, even in compilation (TODO: cite Krary)) can actually be proven. I personally think that this fact alone makes it the canonical view of ML.</p> <p>There’s also this other paper by Sterling, Harper, but quite frankly I don’t understand it after years of attempting to. (TODO: cite Sterling)</p> <p>Then there’s the Rossberg F-ing Modules paper (TODO: cite), which basically attempts to elaborate away all modules. Technically there’s nothing wrong with the paper, but I don’t hold this view. I consider modules as proper type theoretic objects. They are basically dependent sums with restrictions.</p> <h1 id="the-well-known-problems">The Well Known Problems</h1> <p>Most people who write any real amount of code probably already know, or seen, many of the problems. An excellent comprehensive list is given in Rossberg (TODO: cite). These issues are largely uncontroversial on their own, but the correct fix on the other hand can be. To list out a few (out of many) that I do plan to address slowly while I’m here anyway:</p> <ul> <li>Parsing bugs, a lot of them. Many shift-reduce conflicts, and some horrific reduce-reduce conflicts in the case of <code class="language-plaintext highlighter-rouge">&lt;match&gt;</code>. These mostly involve changing some of the syntax and is more annoying than it is difficult to fix. I’m personally happy as long as all such conflicts are avoided as much as possible, which generally involves adding a reserved word in expressions, declaration, etc.</li> <li>eqtype needs to die. It is questionable to do equality checks in the first place, but it should absolutely not be in the language.</li> <li>Fixity is very messy in the language. I haven’t decided exactly what to do here yet, as it seems that whatever I end up with will piss somebody off one way or the other regardless.</li> <li>Some stuff could definitely be more general, or nicer. For instance, being able to define extension types that are not <code class="language-plaintext highlighter-rouge">exn</code>. Some syntatic sugar on working with products/records. Having/Being able to define a <code class="language-plaintext highlighter-rouge">void</code> type as an empty datatype. Some syntatic sugar like <code class="language-plaintext highlighter-rouge">M.(e)</code> = <code class="language-plaintext highlighter-rouge">let open M in e end</code> like in OCaml. Removing positional argument syntax in functors. Higher order functors. Cleaning up the syntax for type sharing. The list goes on and on.</li> <li>Having a seperate compilation system that doesn’t depend on modules.</li> </ul> <p>To me, these are mostly the minor annoying problems, and boils down to spending a very long time writing a lot of implementation code. There are, however, two major problems that I want to address, which had been stuck in my head for years ever since and is what I will actually talk about. These two issues have led me to conclude that the right way forward is to ignore backwards compatibilty altogether and start from scratch, because it will require a rethinking of how to structure libraries anyway. I can’t say I have a complete solution in my mind already, so this should be considered a sketch.</p> <h1 id="issue-1-syntatic-patterns-and-datatype">Issue 1: Syntatic Patterns and Datatype</h1> <p>One of my biggest gripes with the language is not being able to define syntatic patterns for a type. Let me explain how I came to this particular conclusion, but you will have to bare with me since this will take a while.</p> <p>In Harper-Stone elaboration, datatypes are just modules. This is a very nice view of datatypes, because it seperates out what datatype is actually doing within the internal language into disparate parts. A datatype is a module with an abstract type, a constructor, and a pattern (or destructor, if you will). For example:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>datatype foo = Foo of int | Bar of string
+</code></pre></div></div> <p>is actually (I will make up some concrete syntax for the internal language to make it nicer to read):</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure Foo :&gt; sig
+  type t (* = mu.(int + string) *)
+
+  val Foo : int -&gt; t
+  val Bar : string -&gt; t
+
+  val expose (* pattern for t *) : t -&gt; (int[Tag Foo] + string[Tag Bar])
+end = struct ... end
+</code></pre></div></div> <p>Basically there is an abstract type <code class="language-plaintext highlighter-rouge">t</code> that is internally implemented with a recursive sum, two constructors (aka just functions), and one pattern/destructor <code class="language-plaintext highlighter-rouge">expose</code> (aka also just a function). The <code class="language-plaintext highlighter-rouge">expose</code> function is applied every time pattern matching happens. (Let’s ignore equality for time being. I’ll get to it when I talk about the next issue.). For example:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case foo : foo of
+| Foo.Foo x =&gt; e1
+| Foo.Bar y =&gt; e2
+</code></pre></div></div> <p>becomes</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case[int + string] Foo.expose foo of
+| InjFoo v =&gt; (fn x =&gt; e1) v
+| InjBar v =&gt; (fn y =&gt; e2) v
+</code></pre></div></div> <p>From the Harper-Stone perspective, what struck me when I first read it, is that it is a huge shame there is no way to syntatically express patterns for the type in the concrete language (like <code class="language-plaintext highlighter-rouge">expose</code> here). This turns into certain bizarre artifacts when writing code that happens more often than people think.</p> <p>The most annoying place where this shows up is when people put a <code class="language-plaintext highlighter-rouge">datatype</code> in a signature. I generally avoid putting <code class="language-plaintext highlighter-rouge">datatype</code> in signatures because of what the definition requires. Suppose I am writing, say, a signature for <code class="language-plaintext highlighter-rouge">STACK</code>. At this point, I have to make a decision. The first cut, I can do:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>signature STACK = sig
+  datatype 'a t = Empty | Stack of 'a * 'a t
+
+  val push : 'a t -&gt; 'a -&gt; 'a t
+  (* and etc. *)
+end
+</code></pre></div></div> <p>This type is clearly isomorphic with the type of lists, but it isn’t a list. It can be represented as a list, so what I want to be able to write, following Harper-Stone, is:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure StackList :&gt; STACK = struct
+  type 'a t = 'a list
+
+  val Empty = Nil
+  val Cons (h , t) = Stack (h , t)
+end
+</code></pre></div></div> <p>And now I’m stuck for two reasons: Reason 1) This doesn’t typecheck, because ‘a t needs to be a datatype. Reason 2) I can’t write code in the surface syntax for patterns.</p> <p>Therefore, to deal with these two problems today, what I can do is to change the signature to remove <code class="language-plaintext highlighter-rouge">datatype</code> and use an abstract type, and to have some “view” type for the pattern. For example, the signature needs to be:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>signature STACK = sig
+  type 'a t
+
+  val empty : 'a t
+  val push : 'a t -&gt; 'a -&gt; 'a t
+
+  datatype 'a view = Empty | Stack of 'a * 'a t
+  val elim : 'a t -&gt; 'a view
+end
+</code></pre></div></div> <p>I found this problematic for two reasons. The first has to do with more complex pattern matching. For instance, if I want to check that some <code class="language-plaintext highlighter-rouge">s : int stack</code> has <code class="language-plaintext highlighter-rouge">1</code> and <code class="language-plaintext highlighter-rouge">2</code> at the top of the stack, what do I do? I want to write:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case s of
+| Stack (1 , Stack (2 , rest)) =&gt; e (* do something *)
+</code></pre></div></div> <p>except that because my views are (potentially) lazy, this won’t work, so you’d need to do something like</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case elim s of
+| Stack (1 , s) =&gt;
+  case elim s of
+  | Stack (2 , rest) =&gt; e
+</code></pre></div></div> <p>which messes up a lot of your patterns, especially when the conditions are complex.</p> <p>The second reason has to do with what this actually looks like in the internal language. Suppose I have some implementation:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure S : STACK = sig
+  type 'a t = 'a list
+
+  datatype 'a view = Empty | Stack of 'a * 'a t
+  fun elim s =
+    case s of
+    | Nil =&gt; Empty
+    | Cons (h , t) =&gt; Stack (h , elim t)
+end
+</code></pre></div></div> <p>Because <code class="language-plaintext highlighter-rouge">'a view</code> is also a <code class="language-plaintext highlighter-rouge">datatype</code>, the internal language of Harper-Stone looks like</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure S : STACK = sig
+  structure List = List
+  structure View = struct
+    type 'a t (* = mu x.fn x =&gt; 1 + 'a * 'a x *)
+
+    val Empty : 'a t
+    val Stack : 'a t -&gt; 'a -&gt; 'a t
+  end
+
+  open List View
+
+  fun elim s =
+    case List.expose s of
+    (* ... *)
+end
+</code></pre></div></div> <p>Aka, this requires a translation to some other type <code class="language-plaintext highlighter-rouge">'a View.t</code>, which is there solely to help people with pattern matching.</p> <p>Arguably, this translation is probably necessary anyway (I have thoughts on optimization, but not very concrete at the moment), but in this form, it will require the compiler to do a pretty difficult analysis to optimize. Also observe that the sole purpose of <code class="language-plaintext highlighter-rouge">'a view</code> is just to help people pattern match. The internal representation <code class="language-plaintext highlighter-rouge">'a View.t</code> is completely irrelevant, because it gets eliminated immediately in pattern matching, and you are essentially just working with recursive sums directly instead of all the <code class="language-plaintext highlighter-rouge">fold</code> and <code class="language-plaintext highlighter-rouge">unfold</code> that needs to happen.</p> <p>I found all this very ugly and unsatisfactory. If you pick the first signature, you get locked into a data representation. If you pick the second signature, you get screwed during pattern matching. So generally people pick the second signature, since at least it is more general.</p> <p>This happens a lot when you need to write types that have multiple representations. And the point of ML module type theory is precisely to allow multiple implementations. For instance, for locally nameless form of the Debruijn representation, trying to do pattern matching can be hell when you need to switch between representations manually. A similar issue is working with streams, where you need to do this kind of fold/unfold constantly.</p> <h2 id="my-idea-for-a-fix">My Idea for A Fix</h2> <p>So there are two questions with writing it the straightforward way. The first question here being, ignoring the pattern matching part, should this typecheck?</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure StackList :&gt; sig
+  datatype 'a t = Empty | Stack of 'a * 'a t
+end = struct
+  type 'a t = 'a list
+
+  val Empty = Nil
+  val Cons (h , t) = Stack (h , t)
+
+  (* do something about patterns *)
+end
+</code></pre></div></div> <p>My answer to this is an emphatic <strong>yes</strong>. Of course this should typecheck. Because from the perspective of Harper-Stone, datatypes are <em>just</em> modules, and hence datatype specifications are <em>just</em> signatures. Who cares if you are implementing recursive sums exactly the way the “canonical compiler” dictates! If you have a more efficient representation, it should typecheck by Harper-Stone, and you should be able to replace it with a better one.</p> <p>This means that you can represent booleans with integers or natural numbers with integers. For example, I think this should typecheck:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure BoolInt : sig
+  datatype t = True | False
+end = struct
+  type t = int
+
+  val True = 1
+  val False = 0
+
+  (* do something about patterns *)
+end
+structure NatInt : sig
+  datatype t = Z | S of t
+end = struct
+  type t = int
+
+  val Z = 0
+  fun S v = v + 1
+
+  (* do something about patterns *)
+end
+</code></pre></div></div> <p>This is obviously a better natural number implementation than what the definition of Standard ML dictates the signature to be. You can work with natural numbers inductively, but it is also represented internally efficiently. So you get the best of both worlds here.</p> <p>The motivation above brings us to the natural question on what to do about patterns here, and that is not so obvious. My current idea is to basically have a specific pattern construct so that it can be used as elaboration for pattern matching. This idea was basically stolen from Rossberg’s HamLetS (except that conversion only goes one way):</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>structure NatInt : sig
+  datatype t = Z | S of t
+end = struct
+  type t = int
+
+  val Z = 0
+  fun S v = v + 1
+
+  pattern t (as t2) Z | S of t = pat
+    fun convert (v : t) : t2 =
+      case v of
+      | 0 =&gt; Z
+      | _ =&gt; S (v - 1)
+  end
+end
+</code></pre></div></div> <p>In the pattern declaration, <code class="language-plaintext highlighter-rouge">Z</code> and <code class="language-plaintext highlighter-rouge">S</code> are functions only available within the <code class="language-plaintext highlighter-rouge">pat ... end</code> block, whereas outside the block only the pattern is available for use.</p> <p>Similarly, just as you can view a binary search tree as both a tree and a sorted list, a type can have multiple patterns. I haven’t worked out the details yet but I suspect it can be annoying to elaborate, especially with polymorphism in the type. A nice thing here is that it doesn’t just allow you to write the conversion eagerly, but in the above example it also works on as “as needed” basis for pattern matching, where only the stuff you pattern much gets evaluated, even in complex patterns. Hence,</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case i : NatInt.t of
+| S (S v) =&gt; e
+</code></pre></div></div> <p>becomes</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case convert i of
+| S x' =&gt;
+  case convert x' of
+  | S v =&gt; e (* v here is still an int, internally *)
+</code></pre></div></div> <p>whereas if you insist on evaluating stuff eagerly here (I don’t see why you would), you can still do:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  pattern t (as t2) Z | S of t2 = pat
+    fun convert (v : t) : t2 =
+      case v of
+      | 0 =&gt; Z
+      | _ =&gt; S (convert (v - 1))
+  end
+</code></pre></div></div> <p>But more importantly, it “completes” the Harper-Stone interpretation nicely without compromises. This signature:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sig
+  datatype t = Z | S of t
+end
+</code></pre></div></div> <p>is now syntatic sugar and completely identical to this one:</p> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sig
+  type t
+
+  val Z : t
+  val S : t -&gt; t
+
+  pattern t (as t2) of Z | S of t
+end
+</code></pre></div></div> <p>And everything typechecks and everyone is happy. Mostly. (There are still a bunch of corners I haven’t ironed out here yet.)</p> <h1 id="issue-2-the-modular-type-classes-paper">Issue 2: The Modular Type Classes Paper</h1> </div> </article> <h2>References</h2> <div class="publications"> <ol class="bibliography"> <li> <div class="row"> <div class="col col-sm-2 abbr"> </div> <div id="HarperStone2000" class="col-sm-8"> <div class="title">A type-theoretic interpretation of standard ML</div> <div class="author"> Robert Harper, and Christopher Stone </div> <div class="periodical"> <em>Proof, Language, and Interaction</em>, May 2000 </div> <div class="periodical"> </div> <div class="links"> <a href="https://doi.org/10.7551/mitpress/5641.003.0019" class="btn btn-sm z-depth-0" role="button" rel="external nofollow noopener" target="_blank">DOI</a> </div> </div> </div> </li> <li> <div class="row"> <div class="col col-sm-2 abbr"> </div> <div id="LeeCraryHarper2007" class="col-sm-8"> <div class="title">Towards a mechanized metatheory of standard ML</div> <div class="author"> Daniel K. Lee, Karl Crary, and Robert Harper </div> <div class="periodical"> <em>Proceedings of the 34th annual ACM SIGPLAN-SIGACT symposium on Principles of programming languages</em>, Jan 2007 </div> <div class="periodical"> </div> <div class="links"> <a href="https://doi.org/10.1145/1190216.1190245" class="btn btn-sm z-depth-0" role="button" rel="external nofollow noopener" target="_blank">DOI</a> </div> </div> </div> </li> <li> <div class="row"> <div class="col col-sm-2 abbr"> </div> <div id="Dreyer2005" class="col-sm-8"> <div class="title">Understanding and evolving the ML module system</div> <div class="author"> Derek Dreyer, and Carnegie-mellon science </div> <div class="periodical"> Jan 2005 </div> <div class="periodical"> </div> <div class="links"> </div> </div> </div> </li> <li> <div class="row"> <div class="col col-sm-2 abbr"> </div> <div id="Defn2nd" class="col-sm-8"> <div class="title">The definition of standard ML Robin Milner, Robert Harper, David Macqueen, Mads Tofte</div> <div class="author"> Robin Milner, Robert Harper, David Macqueen, and <span class="more-authors" title="click to view 1 more author" onclick=" var element=$(this); element.attr('title', ''); var more_authors_text=element.text() == '1 more author' ? 'Mads Tofte' : '1 more author'; var cursorPosition=0; var textAdder=setInterval(function(){ element.html(more_authors_text.substring(0, cursorPosition + 1)); if (++cursorPosition == more_authors_text.length){ clearInterval(textAdder); } }, '10'); ">1 more author</span> </div> <div class="periodical"> Jan 2019 </div> <div class="periodical"> </div> <div class="links"> </div> </div> </div> </li> </ol> </div> <div id="giscus_thread" style="max-width: 930px; margin: 0 auto;"> <script>
+      let giscusTheme = determineComputedTheme();
+      let giscusAttributes = {
+        src: 'https://giscus.app/client.js',
+        'data-repo': 'haoxuany/haoxuany.github.io',
+        'data-repo-id': 'R_kgDON40yxw',
+        'data-category': 'Announcements',
+        'data-category-id': 'DIC_kwDON40yx84CnQSq',
+        'data-mapping': 'pathname',
+        'data-strict': '1',
+        'data-reactions-enabled': '0',
+        'data-emit-metadata': '0',
+        'data-input-position': 'bottom',
+        'data-theme': giscusTheme,
+        'data-lang': 'en',
+        crossorigin: 'anonymous',
+        async: '',
+      };
+
+      let giscusScript = document.createElement('script');
+      Object.entries(giscusAttributes).forEach(([key, value]) => giscusScript.setAttribute(key, value));
+      document.getElementById('giscus_thread').appendChild(giscusScript);
+    </script> <noscript>Please enable JavaScript to view the <a href="http://giscus.app/?ref_noscript" rel="external nofollow noopener" target="_blank">comments powered by giscus.</a> </noscript> </div> </div> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2026 Haoxuan (Aaron) Yue. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?a0db7e5d5c70cc3252b3138b0c91dcaf" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?85ddb88934d28b74e78031fd54cf8308"></script> <script src="/assets/js/no_defer.js?2781658a0a2b13ed609542042a859126"></script> <script defer src="/assets/js/common.js?e0514a05c5c95ac1a93a8dfd5249b92e"></script> <script defer src="/assets/js/copy_code.js?12775fdf7f95e901d7119054556e495f" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?d9f17b6adc2311cbabd747f4538bb15f"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/js/mathjax-setup.js?a5bb4e6a542c546dd929b24b8b236dfd"></script> <script defer src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6" crossorigin="anonymous"></script> <script defer src="/assets/js/progress-bar.js?2f30e0e6801ea8f5036fa66e1ab0a71a" type="text/javascript"></script> <script src="/assets/js/tabs.min.js?b8748955e1076bbe0dabcf28f2549fdc"></script> <script src="/assets/js/vanilla-back-to-top.min.js?f40d453793ff4f64e238e420181a1d17"></script> <script>
+    addBackToTop();
+  </script> <script type="module" src="/assets/js/search/ninja-keys.min.js?a3446f084dcaecc5f75aa1757d087dcf"></script> <ninja-keys hidebreadcrumbs noautoloadmdicons placeholder="Type to start searching"></ninja-keys> <script src="/assets/js/search-setup.js?6c304f7b1992d4b60f7a07956e52f04a"></script> <script src="/assets/js/search-data.js"></script> <script src="/assets/js/shortcut-key.js?6f508d74becd347268a7f822bca7309d"></script> </body> </html>

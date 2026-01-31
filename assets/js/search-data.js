@@ -16,7 +16,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-how-to-dislike-constructive-mathematics-correctly",
+        },{id: "post-thoughts-on-standard-ml",
+      
+        title: "Thoughts on Standard ML",
+      
+      description: "here we go again",
+      section: "Posts",
+      handler: () => {
+        
+          window.location.href = "/blog/experimental-sml/";
+        
+      },
+    },{id: "post-how-to-dislike-constructive-mathematics-correctly",
       
         title: "How to Dislike Constructive Mathematics Correctly",
       
