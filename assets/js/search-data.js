@@ -16,15 +16,15 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-",
+        },{id: "post-johnson-39-s-memoized-cps-parser-combinator-aka-the-agda-mixfix-parser",
       
-        title: "",
+        title: "Johnson&#39;s Memoized CPS Parser Combinator (aka the Agda mixfix parser)",
       
-      description: "",
+      description: "magic tricks",
       section: "Posts",
       handler: () => {
         
-          window.location.href = "/blog/2026-06-10-johnson/";
+          window.location.href = "/blog/johnson/";
         
       },
     },{id: "post-thoughts-on-standard-ml",
