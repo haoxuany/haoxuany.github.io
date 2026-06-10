@@ -16,9 +16,9 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-johnson-39-s-memoized-cps-parser-combinator-aka-the-agda-mixfix-parser",
+        },{id: "post-johnson-memoized-cps-parser-aka-the-agda-mixfix-parser",
       
-        title: "Johnson&#39;s Memoized CPS Parser Combinator (aka the Agda mixfix parser)",
+        title: "Johnson Memoized CPS Parser (aka the Agda mixfix parser)",
       
       description: "magic tricks",
       section: "Posts",
