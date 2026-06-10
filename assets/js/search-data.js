@@ -16,7 +16,18 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/blog/";
           },
-        },{id: "post-thoughts-on-standard-ml",
+        },{id: "post-",
+      
+        title: "",
+      
+      description: "",
+      section: "Posts",
+      handler: () => {
+        
+          window.location.href = "/blog/2026-06-10-johnson/";
+        
+      },
+    },{id: "post-thoughts-on-standard-ml",
       
         title: "Thoughts on Standard ML",
       
